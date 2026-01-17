@@ -9,19 +9,48 @@ import Animated, {
   SharedValue,
   interpolateColor
 } from 'react-native-reanimated';
+import { Cloud, Sun, LucideIcon } from 'lucide-react-native';
+import { useState, useEffect } from 'react';
 
 interface HeroWeatherCardProps {
   scrollY: SharedValue<number>;
   activeTab: 'today' | 'tomorrow' | '10days';
   onTabChange: (tab: 'today' | 'tomorrow' | '10days') => void;
+  temp?: number;
+  condition?: string;
+  high?: number;
+  low?: number;
+  location?: string;
+  feelsLike?: number;
+  icon?: any;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SCROLL_THRESHOLD = 120;
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
-export default function HeroWeatherCard({ scrollY, activeTab, onTabChange }: HeroWeatherCardProps) {
+export default function HeroWeatherCard({
+  scrollY,
+  activeTab,
+  onTabChange,
+  temp = 32,
+  condition = 'Partly Cloudy',
+  high = 34,
+  low = 24,
+  location = 'Thrissur, India',
+  feelsLike = 35,
+  icon: WeatherIcon = Sun // Default to Sun if missing
+}: HeroWeatherCardProps) {
   const insets = useSafeAreaInsets();
+  const [now, setNow] = useState(new Date());
+
+  // Clock Timer
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 1000 * 60); // Update every minute
+    return () => clearInterval(timer);
+  }, []);
 
   // --- Animated Styles ---
 
@@ -134,56 +163,52 @@ export default function HeroWeatherCard({ scrollY, activeTab, onTabChange }: Her
   });
 
   const iconStyle = useAnimatedStyle(() => {
+    // Current approach: Animate TOP/LEFT and SCALE (instead of width/height) for better SVG handling
     const top = interpolate(
       scrollY.value,
       [0, SCROLL_THRESHOLD],
-      [120, 65 + insets.top],
+      [120, 55 + insets.top], // Raised by 10px from 65
       Extrapolation.CLAMP
     );
 
     const left = interpolate(
       scrollY.value,
       [0, SCROLL_THRESHOLD],
-      [SCREEN_WIDTH - 24 - 96 - 8, SCREEN_WIDTH - 24 - 64 - 8], // Adjusted for smaller icon
+      [SCREEN_WIDTH - 24 - 96 - 8, SCREEN_WIDTH - 24 - 64 - 8], // Position
       Extrapolation.CLAMP
     );
 
-    const size = interpolate(
+    const scale = interpolate(
       scrollY.value,
       [0, SCROLL_THRESHOLD],
-      [96, 64],
+      [1, 0.67], // Scale from 100% (96px) to ~67% (64px)
       Extrapolation.CLAMP
     );
 
     return {
       top,
       left,
-      width: size,
-      height: size,
+      transform: [{ scale }],
+      // Remove explicit width/height here if using scale, OR keep them static 96
+      width: 96,
+      height: 96,
     };
   });
 
   // "Feels like" text style
   const feelsLikeStyle = useAnimatedStyle(() => {
-    // Smoothly transition from Right of Big Temp (Expanded) to Right of Small Temp (Collapsed)
-
-    // Horizontal Position (To the right of the temperature)
-    // Expanded Temp (96px) width ~ 60-80px. Left=24. Start Text at ~100?
-    // Collapsed Temp (64px) width ~ 40-50px. Left=24. Start Text at ~80?
+    // Moved BELOW the temperature (Expanded) and Right (Collapsed)
     const left = interpolate(
       scrollY.value,
       [0, SCROLL_THRESHOLD],
-      [110, 85],
+      [28, 125], // Slide right to clear temp (~100px width)
       Extrapolation.CLAMP
     );
 
-    // Vertical Position (Aligning baselines)
-    // Expanded Top: 120 + (96 font - ~20 baseline offset) = ~196
-    // Collapsed Top: (65 + insets.top) + (64 font - ~20 baseline offset)
     const top = interpolate(
       scrollY.value,
       [0, SCROLL_THRESHOLD],
-      [196, 65 + insets.top + 38],
+      [240, 65 + insets.top + 50], // Push down to align with Temp baseline (offset 50)
       Extrapolation.CLAMP
     );
 
@@ -254,8 +279,9 @@ export default function HeroWeatherCard({ scrollY, activeTab, onTabChange }: Her
                 locationStyle,
                 { fontSize: 20, fontWeight: '600', fontFamily: 'ProductSans-Regular' }
               ]}
+              numberOfLines={1}
             >
-              Kharkiv, Ukraine
+              {location}
             </Animated.Text>
           </View>
 
@@ -280,7 +306,7 @@ export default function HeroWeatherCard({ scrollY, activeTab, onTabChange }: Her
             tempStyle
           ]}
         >
-          3°
+          {temp}°
         </Animated.Text>
 
         <Animated.Text
@@ -295,20 +321,23 @@ export default function HeroWeatherCard({ scrollY, activeTab, onTabChange }: Her
             feelsLikeStyle
           ]}
         >
-          Feels like -2°
+          Feels like {feelsLike}°
         </Animated.Text>
 
         <Animated.View
           style={[
             {
               position: 'absolute',
-              backgroundColor: '#FACC15', // yellow-400
-              borderRadius: 9999,
+              // Removed BG color/radius since we are rendering an icon
               zIndex: 20,
+              alignItems: 'center',
+              justifyContent: 'center',
             },
             iconStyle
           ]}
-        />
+        >
+          <WeatherIcon size={96} color="#FACC15" fill="#FACC15" />
+        </Animated.View>
 
         {/* Fading Content */}
         <Animated.View
@@ -325,18 +354,20 @@ export default function HeroWeatherCard({ scrollY, activeTab, onTabChange }: Her
 
               {/* Right: Metadata under Icon */}
               <View className="items-center mt-20 mr-4">
-                <Text className="text-white text-3xl font-medium" style={{ fontFamily: 'ProductSans-Regular' }}>Cloudy</Text>
+                <Text className="text-white text-3xl font-medium" style={{ fontFamily: 'ProductSans-Regular' }}>{condition}</Text>
               </View>
             </View>
           </View>
 
           {/* Bottom Row */}
           <View className="flex-row justify-between items-end">
-            <Text className="text-white text-lg font-medium" style={{ fontFamily: 'ProductSans-Regular' }}>January 18, 16:14</Text>
+            <Text className="text-white text-lg font-medium" style={{ fontFamily: 'ProductSans-Regular' }}>
+              {now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}, {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+            </Text>
 
             <View className="items-end">
-              <Text className="text-white text-lg font-semibold" style={{ fontFamily: 'ProductSans-Regular' }}>Day 3°</Text>
-              <Text className="text-white text-lg font-semibold" style={{ fontFamily: 'ProductSans-Regular' }}>Night -1°</Text>
+              <Text className="text-white text-lg font-semibold" style={{ fontFamily: 'ProductSans-Regular' }}>Day {high}°</Text>
+              <Text className="text-white text-lg font-semibold" style={{ fontFamily: 'ProductSans-Regular' }}>Night {low}°</Text>
             </View>
           </View>
         </Animated.View>

@@ -1,8 +1,10 @@
 import { StatusBar } from 'expo-status-bar';
 import { RefreshControl } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFonts } from 'expo-font';
 import Animated, { useSharedValue, useAnimatedScrollHandler } from 'react-native-reanimated';
+import { fetchWeatherData, WeatherData } from './services/weatherService';
+import { ActivityIndicator, View } from 'react-native';
 
 // Import weather components
 import HeroWeatherCard from './components/HeroWeatherCard';
@@ -18,7 +20,22 @@ import './global.css';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | '10days'>('today');
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [loading, setLoading] = useState(true);
   const scrollY = useSharedValue(0);
+
+  useEffect(() => {
+    loadWeather();
+  }, []);
+
+  const loadWeather = async () => {
+    setLoading(true);
+    const data = await fetchWeatherData();
+    if (data) {
+      setWeather(data);
+    }
+    setLoading(false);
+  };
 
   const onScroll = useAnimatedScrollHandler((event) => {
     scrollY.value = event.contentOffset.y;
@@ -29,8 +46,12 @@ export default function App() {
     'ProductSans-Regular': require('./assets/Product Sans Regular.ttf'),
   });
 
-  if (!fontsLoaded) {
-    return null; // Or a loading screen
+  if (!fontsLoaded || loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-purple-400">
+        <ActivityIndicator size="large" color="white" />
+      </View>
+    );
   }
 
   return (
@@ -45,7 +66,7 @@ export default function App() {
           bounces={false}
           overScrollMode="never"
           refreshControl={
-            <RefreshControl refreshing={false} onRefresh={() => { }} tintColor="#8920D5" />
+            <RefreshControl refreshing={loading} onRefresh={loadWeather} tintColor="#8920D5" />
           }
         >
           {/* Sticky Hero Weather Card (includes Header + Hero + Tabs) */}
@@ -53,6 +74,13 @@ export default function App() {
             scrollY={scrollY}
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            temp={weather?.current.temp}
+            condition={weather?.current.condition}
+            high={weather?.current.high}
+            low={weather?.current.low}
+            feelsLike={weather?.current.feelsLike}
+            location="Thrissur, India"
+            icon={weather?.current.icon}
           />
 
           {activeTab === 'today' || activeTab === 'tomorrow' ? (
