@@ -1,29 +1,85 @@
-import { View, Text } from 'react-native';
+import { View, Text as RNText } from 'react-native';
+import { Sunrise, Sunset } from 'lucide-react-native';
 
-export default function SunriseSunset() {
+interface SunriseSunsetProps {
+  sunrise?: string;
+  sunset?: string;
+  sunriseDiff?: string;
+  sunsetDiff?: string;
+}
+
+export default function SunriseSunset({
+  sunrise = '4:20 AM',
+  sunset = '4:50 PM',
+  sunriseDiff = '4h ago',
+  sunsetDiff = 'in 9h',
+}: SunriseSunsetProps) {
   return (
-    <View className="px-6 mb-4">
-      <View className="bg-weather-card rounded-2xl p-4">
-        <View className="flex-row justify-between items-center">
-          {/* Sunrise */}
-          <View className="flex-1 items-center">
-            <Text className="text-3xl mb-2">🌅</Text>
-            <Text className="text-gray-700 text-sm mb-1">Sunrise</Text>
-            <Text className="text-gray-900 font-semibold text-base">4:20 AM</Text>
-            <Text className="text-gray-500 text-xs mt-1">48 ago</Text>
+    <View className="px-6 mb-8">
+      <View className="flex-row gap-4">
+
+        {/* Sunrise */}
+        <View className="flex-1 basis-0 bg-[#EFE9FF] rounded-3xl px-4 py-4 h-[84px] justify-between">
+          <View className="flex-row items-center gap-3">
+            <View className="bg-white p-2 rounded-full">
+              <Sunrise size={18} color="#4B5563" />
+            </View>
+            <RNText
+              className="text-[14px] text-gray-700 font-medium"
+              style={{ fontFamily: 'ProductSans-Regular' }}
+            >
+              Sunrise
+            </RNText>
           </View>
-          
-          {/* Divider */}
-          <View className="w-px h-16 bg-gray-300" />
-          
-          {/* Sunset */}
-          <View className="flex-1 items-center">
-            <Text className="text-3xl mb-2">🌇</Text>
-            <Text className="text-gray-700 text-sm mb-1">Sunset</Text>
-            <Text className="text-gray-900 font-semibold text-base">4:30 PM</Text>
-            <Text className="text-gray-500 text-xs mt-1">In 7h</Text>
+
+          <View className="flex-row items-end justify-between">
+            <RNText
+              className="text-[17px] text-[#333333] font-semibold"
+              style={{ fontFamily: 'ProductSans-Regular' }}
+            >
+              {sunrise}
+            </RNText>
+
+            <RNText
+              className="text-[11px] text-gray-500 font-medium mb-0.5"
+              style={{ fontFamily: 'ProductSans-Regular' }}
+            >
+              {sunriseDiff}
+            </RNText>
           </View>
         </View>
+
+        {/* Sunset */}
+        <View className="flex-1 basis-0 bg-[#EFE9FF] rounded-3xl px-4 py-4 h-[84px] justify-between">
+          <View className="flex-row items-center gap-3">
+            <View className="bg-white p-2 rounded-full">
+              <Sunset size={18} color="#4B5563" />
+            </View>
+            <RNText
+              className="text-[14px] text-gray-700 font-medium"
+              style={{ fontFamily: 'ProductSans-Regular' }}
+            >
+              Sunset
+            </RNText>
+          </View>
+
+          <View className="flex-row items-end justify-between">
+            <RNText
+              className="text-[17px] text-[#333333] font-semibold"
+              style={{ fontFamily: 'ProductSans-Regular' }}
+            >
+              {sunset}
+            </RNText>
+
+            <RNText
+              className="text-[11px] text-gray-500 font-medium mb-0.5"
+              style={{ fontFamily: 'ProductSans-Regular' }}
+            >
+              {sunsetDiff}
+            </RNText>
+          </View>
+        </View>
+
       </View>
     </View>
   );
