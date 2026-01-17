@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native';
-import { Wind, CloudRain, Gauge, Sun, ChevronDown } from 'lucide-react-native';
+import { Wind, CloudRain, Waves, Sun, ChevronDown } from 'lucide-react-native';
 
 export default function WeatherDetailsGrid() {
   return (
@@ -55,7 +55,7 @@ export default function WeatherDetailsGrid() {
         <View className="bg-[#EFE9FF] rounded-3xl p-3 flex-1 min-w-[45%]">
           <View className="flex-row items-center gap-2.5 mb-1">
             <View className="bg-white p-2 rounded-full items-center justify-center">
-              <Gauge size={18} color="#4B5563" />
+              <Waves size={18} color="#4B5563" />
             </View>
             <Text className="text-[#333333] text-[15px] font-medium" style={{ fontFamily: 'ProductSans-Regular' }}>
               Pressure

@@ -18,7 +18,7 @@ export default function RainChanceChart() {
           <View key={index} className="flex-row items-center mb-3">
             <Text className="text-gray-700 text-sm w-16">{data.time}</Text>
             <View className="flex-1 bg-gray-200 rounded-full h-6 overflow-hidden">
-              <View 
+              <View
                 className="bg-weather-accent h-full rounded-full items-end justify-center pr-2"
                 style={{ width: `${data.percentage}%` }}
               >
