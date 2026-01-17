@@ -1,149 +1,204 @@
-import { View, Text, Dimensions } from 'react-native';
+import { View, Text as RNText, Dimensions } from 'react-native';
 import { Calendar } from 'lucide-react-native';
-import Svg, { Path, Defs, LinearGradient, Stop, Circle, Line as SvgLine, G } from 'react-native-svg';
+import Svg, {
+  Path,
+  Defs,
+  LinearGradient,
+  Stop,
+  Circle,
+  Line as SvgLine,
+  Text as SvgText,
+  G
+} from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
 
-export default function DayForecastChart() {
+interface DayForecastChartProps {
+  data?: number[];
+  activeDayIndex?: number;
+}
+
+export default function DayForecastChart({
+  data = [-6, -1, -2, 3, -1, -4, 0],
+  activeDayIndex = 3
+}: DayForecastChartProps) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  // Mock data to match the curve shape in reference: roughly [-6, -1, -2, 3, -1, -3, 0]
-  const data = [-6, -1, -2, 3, -1, -4, 0];
 
-  // Dimensions
-  const CHART_HEIGHT = 100;
-  const PADDING_HORIZONTAL = 16;
-  const CHART_WIDTH = width - 48 - (PADDING_HORIZONTAL * 2); // Container width - padding
+  // Layout (Adjusted)
+  const CONTAINER_PADDING = 48;
+  const CARD_PADDING = 40;
+  const CHART_HEIGHT = 130; // ⬇ reduced
 
-  // Scales
-  const MAX_TEMP = 10;
-  const MIN_TEMP = -10;
+  const CONTENT_WIDTH = width - CONTAINER_PADDING - CARD_PADDING;
+
+  const MARGIN_LEFT = 55;
+  const MARGIN_RIGHT = 10;
+  const MARGIN_BOTTOM = 20;
+  const MARGIN_TOP = 18; // ⬇ pushes graph down
+
+  const GRAPH_WIDTH = CONTENT_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
+  const GRAPH_HEIGHT = CHART_HEIGHT - MARGIN_BOTTOM - MARGIN_TOP;
+
+  // -----------------------
+  // Dynamic Y Axis (3 labels)
+  // -----------------------
+  const dataMin = Math.min(...data);
+  const dataMax = Math.max(...data);
+
+  const MIN_TEMP = Math.floor(dataMin / 5) * 5 - 5;
+  const MAX_TEMP = Math.ceil(dataMax / 5) * 5 + 5;
   const RANGE = MAX_TEMP - MIN_TEMP;
 
-  const getY = (temp: number) => {
-    return CHART_HEIGHT - ((temp - MIN_TEMP) / RANGE) * CHART_HEIGHT;
-  };
+  const midTemp = Math.round(((MIN_TEMP + MAX_TEMP) / 2) / 5) * 5;
+  const yAxisValues = [MAX_TEMP, midTemp, MIN_TEMP];
 
-  const getX = (index: number) => {
-    return (index / (data.length - 1)) * CHART_WIDTH;
-  };
+  const getY = (temp: number) =>
+    MARGIN_TOP +
+    GRAPH_HEIGHT -
+    ((temp - MIN_TEMP) / RANGE) * GRAPH_HEIGHT;
 
-  // Generate smooth path (simple Catmull-Rom to Bezier conversion or similar smoothing)
-  // For simplicity and specific shape, I'll construct a cubic bezier path or simply line to line with smoothing
-  // Here, implementing a basic smoothing:
+  const getX = (index: number) =>
+    MARGIN_LEFT + (index / (days.length - 1)) * GRAPH_WIDTH;
+
+  // Smooth curve
   const generatePath = (points: number[]) => {
     let d = `M ${getX(0)} ${getY(points[0])}`;
 
     for (let i = 0; i < points.length - 1; i++) {
-      const x_start = getX(i);
-      const y_start = getY(points[i]);
-      const x_end = getX(i + 1);
-      const y_end = getY(points[i + 1]);
+      const x1 = getX(i);
+      const y1 = getY(points[i]);
+      const x2 = getX(i + 1);
+      const y2 = getY(points[i + 1]);
+      const cx = x1 + (x2 - x1) / 2;
 
-      // Control points for smooth curve (midpoint x, current y)
-      const cp1x = x_start + (x_end - x_start) / 2;
-      const cp1y = y_start;
-      const cp2x = x_start + (x_end - x_start) / 2;
-      const cp2y = y_end;
-
-      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x_end} ${y_end}`;
+      d += ` C ${cx} ${y1}, ${cx} ${y2}, ${x2} ${y2}`;
     }
     return d;
   };
 
   const pathD = generatePath(data);
-  const fillPathD = `${pathD} L ${CHART_WIDTH} ${CHART_HEIGHT + 20} L 0 ${CHART_HEIGHT + 20} Z`;
+  const fillPathD = `${pathD} L ${MARGIN_LEFT + GRAPH_WIDTH} ${MARGIN_TOP + GRAPH_HEIGHT} L ${MARGIN_LEFT} ${MARGIN_TOP + GRAPH_HEIGHT} Z`;
 
-  // Active Item (Thursday - Index 3)
-  const activeIndex = 3;
-  const activeX = getX(activeIndex);
-  const activeY = getY(data[activeIndex]);
+  const activeX = getX(activeDayIndex);
+  const activeY = getY(data[activeDayIndex]);
+  const activeTemp = data[activeDayIndex];
 
   return (
     <View className="px-6 mb-4">
       <View className="bg-[#EFE9FF] rounded-3xl py-4">
+
         {/* Header */}
-        <View className="flex-row items-center px-5 mb-3 gap-2.5">
-          <View className="bg-white p-2 rounded-full items-center justify-center">
+        <View className="flex-row items-center px-5 mb-1 gap-2.5">
+          <View className="bg-white p-2 rounded-full">
             <Calendar size={18} color="#4B5563" />
           </View>
-          <Text className="text-[16px] text-[#333333] font-medium" style={{ fontFamily: 'ProductSans-Regular' }}>
+          <RNText
+            className="text-[16px] text-[#333333] font-medium"
+            style={{ fontFamily: 'ProductSans-Regular' }}
+          >
             Day forecast
-          </Text>
+          </RNText>
         </View>
 
-        {/* Chart Content */}
+        {/* Chart */}
         <View className="px-5">
-          <View style={{ height: 160, justifyContent: 'center' }}>
+          <View style={{ height: CHART_HEIGHT + 16 }}>
+            <Svg height={CHART_HEIGHT} width={CONTENT_WIDTH}>
+              <Defs>
+                <LinearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0" stopColor="#A855F7" stopOpacity="0.3" />
+                  <Stop offset="1" stopColor="#A855F7" stopOpacity="0" />
+                </LinearGradient>
+              </Defs>
 
-            {/* Y-Axis Labels (Absolute positioning for layout simplicity or Grid) */}
-            <View className="absolute left-0 top-0 bottom-8 justify-between z-10 w-full" pointerEvents="none">
-              <View className="flex-row items-center w-full">
-                <Text className="text-gray-500 text-xs w-8 text-right pr-2">10°</Text>
-                <View className="flex-1 h-[1px] bg-gray-300/30" />
-              </View>
-              <View className="flex-row items-center w-full">
-                <Text className="text-gray-500 text-xs w-8 text-right pr-2">0°</Text>
-                <View className="flex-1 h-[1px] bg-gray-300/30" />
-              </View>
-              <View className="flex-row items-center w-full">
-                <Text className="text-gray-500 text-xs w-8 text-right pr-2">-10°</Text>
-                <View className="flex-1 h-[1px] bg-gray-300/30" />
-              </View>
-            </View>
+              {/* Y Axis */}
+              {yAxisValues.map((t) => {
+                const yPos = getY(t);
+                return (
+                  <G key={t}>
+                    <SvgText
+                      x={17}
+                      y={yPos + 4}
+                      fontSize={12}
+                      fontWeight="600"
+                      fill="#4B5563"
+                      textAnchor="middle"
+                      fontFamily="System"
+                    >
+                      {`${t}°`}
+                    </SvgText>
 
-            {/* Chart SVG */}
-            <View className="ml-8 mt-2 mb-2" style={{ height: CHART_HEIGHT, width: CHART_WIDTH }}>
-              <Svg height={CHART_HEIGHT + 30} width={CHART_WIDTH} overflow="visible">
-                <Defs>
-                  <LinearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                    <Stop offset="0" stopColor="#A855F7" stopOpacity="0.3" />
-                    <Stop offset="1" stopColor="#A855F7" stopOpacity="0" />
-                  </LinearGradient>
-                </Defs>
+                    <SvgLine
+                      x1={MARGIN_LEFT}
+                      y1={yPos}
+                      x2={MARGIN_LEFT + GRAPH_WIDTH}
+                      y2={yPos}
+                      stroke="rgba(209,213,219,0.5)"
+                      strokeWidth="1"
+                    />
+                  </G>
+                );
+              })}
 
-                {/* Active Line (Dashed) */}
-                <SvgLine
-                  x1={activeX}
-                  y1={activeY}
-                  x2={activeX}
-                  y2={CHART_HEIGHT + 20}
-                  stroke="#4C1D95"
-                  strokeWidth="2"
-                  strokeDasharray="4 4"
-                />
+              {/* Active dashed line */}
+              <SvgLine
+                x1={activeX}
+                y1={activeY}
+                x2={activeX}
+                y2={MARGIN_TOP + GRAPH_HEIGHT}
+                stroke="#4C1D95"
+                strokeWidth="2"
+                strokeDasharray="4 4"
+              />
 
-                {/* Gradient Fill */}
-                <Path d={fillPathD} fill="url(#grad)" />
+              {/* Fill */}
+              <Path d={fillPathD} fill="url(#grad)" />
 
-                {/* The Curve */}
-                <Path d={pathD} stroke="#1F2937" strokeWidth="2.5" fill="none" />
+              {/* Curve */}
+              <Path d={pathD} stroke="#1F2937" strokeWidth="2.5" fill="none" />
 
-                {/* Active Point */}
-                <Circle cx={activeX} cy={activeY} r="5" fill="#4C1D95" stroke="white" strokeWidth="2.5" />
-              </Svg>
-            </View>
+              {/* Active dot */}
+              <Circle
+                cx={activeX}
+                cy={activeY}
+                r={5}
+                fill="#4C1D95"
+                stroke="white"
+                strokeWidth={2.5}
+              />
 
-            {/* Tooltip (Absolute on top of active point) */}
+              {/* X Axis */}
+              {days.map((day, i) => (
+                <SvgText
+                  key={i}
+                  x={getX(i)}
+                  y={CHART_HEIGHT - 4}
+                  fontSize={12}
+                  fill="#4B5563"
+                  textAnchor="middle"
+                  fontWeight={i === activeDayIndex ? 'bold' : 'normal'}
+                  fontFamily="ProductSans-Regular"
+                >
+                  {day}
+                </SvgText>
+              ))}
+            </Svg>
+
+            {/* Tooltip */}
             <View
-              className="absolute shadow-sm"
+              className="absolute"
               style={{
-                left: activeX + 32 - 18, // 32 is left margin offset
-                top: activeY - 26,
+                left: activeX - 18,
+                top: activeY - 32, // ⬆ adjusted
               }}
             >
-              <View className="bg-white rounded-full px-3 py-1 items-center justify-center">
-                <Text className="text-gray-900 font-bold text-sm">3°</Text>
+              <View className="bg-white rounded-full px-3 py-1">
+                <RNText className="text-gray-900 font-bold text-sm">
+                  {activeTemp}°
+                </RNText>
               </View>
             </View>
-          </View>
 
-          {/* X-Axis Labels */}
-          <View className="flex-row justify-between ml-8 mt-1">
-            {days.map((day, index) => (
-              <Text key={index} className="text-gray-800 text-[13px] text-center" style={{ width: 28, fontFamily: 'ProductSans-Regular' }}>
-                {day}
-              </Text>
-            ))}
           </View>
         </View>
       </View>
