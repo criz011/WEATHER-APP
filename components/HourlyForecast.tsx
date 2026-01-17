@@ -44,7 +44,7 @@ export default function HourlyForecast() {
       {/* Outer Container with slight glass/transparency feel via color */}
       <View className="bg-[#EFE9FF] rounded-3xl py-4">
         {/* Header */}
-        <View className="flex-row items-center px-5 mb-3 gap-2.5">
+        <View className="flex-row items-center px-3 mb-3 gap-2.5">
           <View className="bg-white p-2 rounded-full items-center justify-center">
             <Clock size={18} color="#4B5563" />
           </View>
