@@ -1,22 +1,17 @@
 import { View, Text as RNText } from 'react-native';
 import { CloudRain } from 'lucide-react-native';
-
-export interface RainChanceItem {
-  time: string;
-  percentage: number;
-}
+import { HourlyForecastItem } from '../services/weatherService';
 
 interface RainChanceChartProps {
-  data?: RainChanceItem[];
+  hourly?: HourlyForecastItem[];
 }
 
-export default function RainChanceChart({ data }: RainChanceChartProps) {
-  const chartData = data || [
-    { time: '7 PM', percentage: 27 },
-    { time: '8 PM', percentage: 44 },
-    { time: '9 PM', percentage: 56 },
-    { time: '10 PM', percentage: 88 },
-  ];
+export default function RainChanceChart({ hourly = [] }: RainChanceChartProps) {
+  // Take first 4 hours
+  const chartData = hourly.slice(0, 4).map(item => ({
+    time: item.time,
+    percentage: item.rainChance
+  }));
 
   return (
     <View className="px-6 mb-4">

@@ -86,23 +86,40 @@ export default function App() {
           {activeTab === 'today' || activeTab === 'tomorrow' ? (
             <>
               {/* Weather Details Grid */}
-              <WeatherDetailsGrid />
+              <WeatherDetailsGrid
+                windSpeed={weather?.current.windSpeed}
+                rainChance={weather?.current.rainChance}
+                pressure={weather?.current.pressure}
+                uvIndex={weather?.current.uvIndex}
+                windSpeedDiff={weather?.current.windSpeedDiff}
+                rainChanceDiff={weather?.current.rainChanceDiff}
+                pressureDiff={weather?.current.pressureDiff}
+                uvIndexDiff={weather?.current.uvIndexDiff}
+              />
 
               {/* Hourly Forecast */}
-              <HourlyForecast />
+              <HourlyForecast hourly={weather?.hourly} />
 
               {/* Day Forecast Chart */}
-              <DayForecastChart />
+              <DayForecastChart
+                daily={weather?.daily}
+                currentTemp={weather?.current.temp}
+              />
 
               {/* Rain Chance Chart */}
-              <RainChanceChart />
+              <RainChanceChart hourly={weather?.hourly} />
 
               {/* Sunrise/Sunset */}
-              <SunriseSunset />
+              <SunriseSunset
+                sunrise={weather?.astro.sunrise}
+                sunset={weather?.astro.sunset}
+                sunriseDiff={weather?.astro.sunriseDiff}
+                sunsetDiff={weather?.astro.sunsetDiff}
+              />
             </>
           ) : (
             /* Daily Forecast List for 10 Days */
-            <DailyForecastList />
+            <DailyForecastList daily={weather?.daily} />
           )}
         </Animated.ScrollView>
         <StatusBar style="light" />

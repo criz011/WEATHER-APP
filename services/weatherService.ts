@@ -28,14 +28,19 @@ export interface WeatherData {
         pressure: number;
         uvIndex: number;
         isDay: boolean;
+        // Diffs
+        windSpeedDiff?: number;
+        rainChanceDiff?: number;
+        pressureDiff?: number;
+        uvIndexDiff?: number;
     };
     hourly: HourlyForecastItem[];
     daily: DailyForecastItem[];
     astro: {
         sunrise: string;
         sunset: string;
-        sunriseDiff: string; // e.g., "4h ago"
-        sunsetDiff: string;  // e.g., "in 9h"
+        sunriseDiff: string;
+        sunsetDiff: string;
     };
 }
 
@@ -102,7 +107,7 @@ export const getWeatherCodeData = (code: number, isDay: number = 1) => {
 export const fetchWeatherData = async (): Promise<WeatherData | null> => {
     try {
         const response = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,apparent_temperature,is_day,precipitation,rain,weather_code,wind_speed_10m,pressure_msl&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=auto`
+            `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,apparent_temperature,is_day,precipitation,rain,weather_code,wind_speed_10m,pressure_msl&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,is_day,uv_index,pressure_msl,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=auto&forecast_days=14`
         );
         const data = await response.json();
 
@@ -158,6 +163,14 @@ export const fetchWeatherData = async (): Promise<WeatherData | null> => {
             };
         });
 
+        // Calculate Trends (Current vs 3 Hours Ago)
+        const prevHourIndex = currentHourIndex > 3 ? currentHourIndex - 3 : 0;
+
+        const hourlyPressureH0 = hourly.pressure_msl ? hourly.pressure_msl[prevHourIndex] : current.pressure_msl;
+        const hourlyWindH0 = hourly.wind_speed_10m ? hourly.wind_speed_10m[prevHourIndex] : current.wind_speed_10m;
+        const hourlyUvH0 = hourly.uv_index ? hourly.uv_index[prevHourIndex] : 0;
+        const currentUv = hourly.uv_index ? hourly.uv_index[currentHourIndex] : 0;
+
         return {
             current: {
                 temp: Math.round(current.temperature_2m),
@@ -169,8 +182,14 @@ export const fetchWeatherData = async (): Promise<WeatherData | null> => {
                 windSpeed: Math.round(current.wind_speed_10m),
                 rainChance: hourly.precipitation_probability[currentHourIndex] || 0, // Current hour rain chance
                 pressure: Math.round(current.pressure_msl),
-                uvIndex: daily.uv_index_max[0], // Max UV for today
-                isDay: !!current.is_day
+                uvIndex: currentUv, // Use Current UV (was daily max)
+                isDay: !!current.is_day,
+
+                // Diff Values
+                windSpeedDiff: parseFloat((current.wind_speed_10m - hourlyWindH0).toFixed(1)),
+                pressureDiff: Math.round(current.pressure_msl - hourlyPressureH0),
+                rainChanceDiff: (hourly.precipitation_probability[currentHourIndex] || 0) - (hourly.precipitation_probability[prevHourIndex] || 0),
+                uvIndexDiff: parseFloat((currentUv - hourlyUvH0).toFixed(1))
             },
             hourly: mappedHourly,
             daily: mappedDaily,

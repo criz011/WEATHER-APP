@@ -10,31 +10,44 @@ import Svg, {
   Text as SvgText,
   G
 } from 'react-native-svg';
+import { DailyForecastItem } from '../services/weatherService';
 
 const { width } = Dimensions.get('window');
 
 interface DayForecastChartProps {
-  data?: number[];
-  activeDayIndex?: number;
+  daily?: DailyForecastItem[];
+  currentTemp?: number;
 }
 
 export default function DayForecastChart({
-  data = [-6, -1, -2, 3, -1, -4, 0],
-  activeDayIndex = 3
+  daily = [],
+  currentTemp = 0
 }: DayForecastChartProps) {
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  // Safe Slice to 7 days
+  const chartDaily = daily.slice(0, 7);
+
+  if (chartDaily.length === 0) return null;
+
+  // Prepare Data: [CurrentTemp, Avg, Avg, ...]
+  const data = chartDaily.map((item, index) => {
+    if (index === 0) return currentTemp;
+    return Math.round((item.high + item.low) / 2);
+  });
+
+  const days = chartDaily.map(d => d.day);
+  const activeDayIndex = 0; // Always highlight today initially
 
   // Layout (Adjusted)
   const CONTAINER_PADDING = 48;
   const CARD_PADDING = 40;
-  const CHART_HEIGHT = 130; // ⬇ reduced
+  const CHART_HEIGHT = 130;
 
   const CONTENT_WIDTH = width - CONTAINER_PADDING - CARD_PADDING;
 
   const MARGIN_LEFT = 55;
   const MARGIN_RIGHT = 10;
   const MARGIN_BOTTOM = 20;
-  const MARGIN_TOP = 18; // ⬇ pushes graph down
+  const MARGIN_TOP = 18;
 
   const GRAPH_WIDTH = CONTENT_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
   const GRAPH_HEIGHT = CHART_HEIGHT - MARGIN_BOTTOM - MARGIN_TOP;
@@ -45,9 +58,10 @@ export default function DayForecastChart({
   const dataMin = Math.min(...data);
   const dataMax = Math.max(...data);
 
+  // Add padding to range
   const MIN_TEMP = Math.floor(dataMin / 5) * 5 - 5;
   const MAX_TEMP = Math.ceil(dataMax / 5) * 5 + 5;
-  const RANGE = MAX_TEMP - MIN_TEMP;
+  const RANGE = MAX_TEMP - MIN_TEMP || 10; // Prevent div by zero
 
   const midTemp = Math.round(((MIN_TEMP + MAX_TEMP) / 2) / 5) * 5;
   const yAxisValues = [MAX_TEMP, midTemp, MIN_TEMP];
@@ -62,6 +76,7 @@ export default function DayForecastChart({
 
   // Smooth curve
   const generatePath = (points: number[]) => {
+    if (points.length === 0) return '';
     let d = `M ${getX(0)} ${getY(points[0])}`;
 
     for (let i = 0; i < points.length - 1; i++) {
@@ -189,7 +204,7 @@ export default function DayForecastChart({
               className="absolute"
               style={{
                 left: activeX - 18,
-                top: activeY - 32, // ⬆ adjusted
+                top: activeY - 32,
               }}
             >
               <View className="bg-white rounded-full px-3 py-1">

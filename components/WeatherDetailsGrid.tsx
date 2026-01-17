@@ -1,7 +1,53 @@
 import { View, Text } from 'react-native';
-import { Wind, CloudRain, Waves, Sun, ChevronDown } from 'lucide-react-native';
+import { Wind, CloudRain, Waves, Sun } from 'lucide-react-native';
 
-export default function WeatherDetailsGrid() {
+interface WeatherDetailsGridProps {
+  windSpeed?: number;
+  rainChance?: number;
+  pressure?: number;
+  uvIndex?: number;
+  windSpeedDiff?: number;
+  rainChanceDiff?: number;
+  pressureDiff?: number;
+  uvIndexDiff?: number;
+}
+
+export default function WeatherDetailsGrid({
+  windSpeed = 0,
+  rainChance = 0,
+  pressure = 1000,
+  uvIndex = 0,
+  windSpeedDiff = 0,
+  rainChanceDiff = 0,
+  pressureDiff = 0,
+  uvIndexDiff = 0
+}: WeatherDetailsGridProps) {
+
+  const renderTrend = (diff: number, unit: string = '') => {
+    // Show "—" if 0
+    if (diff === 0) {
+      return (
+        <View className="flex-row items-center">
+          <Text className="text-[#9CA3AF] text-[10px] mr-1">—</Text>
+          <Text className="text-[#6B7280] text-[11px] font-medium" style={{ fontFamily: 'ProductSans-Regular' }}>
+            Stable
+          </Text>
+        </View>
+      );
+    }
+    const isPositive = diff > 0;
+    const trendColor = isPositive ? '#9333EA' : '#EF4444'; // Purple vs Faint Red
+
+    return (
+      <View className="flex-row items-center">
+        <Text className="text-[10px] mr-1" style={{ color: trendColor }}>{isPositive ? '▲' : '▼'}</Text>
+        <Text className="text-[#1F2937] text-[11px] font-bold" style={{ fontFamily: 'ProductSans-Regular' }}>
+          {Math.abs(diff)} {unit}
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <View className="px-6 mb-4">
       <View className="flex-row flex-wrap gap-3">
@@ -17,14 +63,9 @@ export default function WeatherDetailsGrid() {
           </View>
           <View className="flex-row items-baseline justify-between mt-2">
             <Text className="text-[#1F2937] text-[18px] font-semibold" style={{ fontFamily: 'ProductSans-Regular' }}>
-              12km/h
+              {windSpeed}km/h
             </Text>
-            <View className="flex-row items-center">
-              <Text className="text-[#DC2626] text-[10px] mr-0.5">▼</Text>
-              <Text className="text-[#1F2937] text-[11px] font-bold" style={{ fontFamily: 'ProductSans-Regular' }}>
-                2 km/h
-              </Text>
-            </View>
+            {renderTrend(windSpeedDiff, 'km/h')}
           </View>
         </View>
 
@@ -40,14 +81,9 @@ export default function WeatherDetailsGrid() {
           </View>
           <View className="flex-row items-baseline justify-between mt-2">
             <Text className="text-[#1F2937] text-[18px] font-semibold" style={{ fontFamily: 'ProductSans-Regular' }}>
-              24%
+              {rainChance}%
             </Text>
-            <View className="flex-row items-center">
-              <Text className="text-[#DC2626] text-[10px] mr-0.5">▼</Text>
-              <Text className="text-[#1F2937] text-[11px] font-bold" style={{ fontFamily: 'ProductSans-Regular' }}>
-                10%
-              </Text>
-            </View>
+            {renderTrend(rainChanceDiff, '%')}
           </View>
         </View>
 
@@ -63,14 +99,9 @@ export default function WeatherDetailsGrid() {
           </View>
           <View className="flex-row items-baseline justify-between mt-2">
             <Text className="text-[#1F2937] text-[18px] font-semibold" style={{ fontFamily: 'ProductSans-Regular' }}>
-              720 hpa
+              {pressure} hpa
             </Text>
-            <View className="flex-row items-center">
-              <Text className="text-[#DC2626] text-[10px] mr-0.5">▼</Text>
-              <Text className="text-[#1F2937] text-[11px] font-bold" style={{ fontFamily: 'ProductSans-Regular' }}>
-                32 hpa
-              </Text>
-            </View>
+            {renderTrend(pressureDiff, 'hpa')}
           </View>
         </View>
 
@@ -86,14 +117,9 @@ export default function WeatherDetailsGrid() {
           </View>
           <View className="flex-row items-baseline justify-between mt-2">
             <Text className="text-[#1F2937] text-[18px] font-semibold" style={{ fontFamily: 'ProductSans-Regular' }}>
-              2,3
+              {uvIndex}
             </Text>
-            <View className="flex-row items-center">
-              <Text className="text-[#DC2626] text-[10px] mr-0.5">▼</Text>
-              <Text className="text-[#1F2937] text-[11px] font-bold" style={{ fontFamily: 'ProductSans-Regular' }}>
-                0.3
-              </Text>
-            </View>
+            {renderTrend(uvIndexDiff)}
           </View>
         </View>
       </View>
