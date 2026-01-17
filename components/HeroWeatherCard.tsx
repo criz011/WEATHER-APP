@@ -12,13 +12,15 @@ import Animated, {
 
 interface HeroWeatherCardProps {
   scrollY: SharedValue<number>;
+  activeTab: 'today' | 'tomorrow' | '10days';
+  onTabChange: (tab: 'today' | 'tomorrow' | '10days') => void;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SCROLL_THRESHOLD = 120;
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
-export default function HeroWeatherCard({ scrollY }: HeroWeatherCardProps) {
+export default function HeroWeatherCard({ scrollY, activeTab, onTabChange }: HeroWeatherCardProps) {
   const insets = useSafeAreaInsets();
 
   // --- Animated Styles ---
@@ -185,10 +187,17 @@ export default function HeroWeatherCard({ scrollY }: HeroWeatherCardProps) {
       Extrapolation.CLAMP
     );
 
+    const color = interpolateColor(
+      scrollY.value,
+      [0, SCROLL_THRESHOLD],
+      ['rgba(255, 255, 255, 0.8)', 'rgba(0, 0, 0, 1)']
+    );
+
     return {
       opacity: 1, // Always visible
       left,
       top,
+      color,
     };
   });
 
@@ -268,7 +277,6 @@ export default function HeroWeatherCard({ scrollY }: HeroWeatherCardProps) {
               fontSize: 14,
               fontWeight: '500',
               fontFamily: 'ProductSans-Regular',
-              color: 'rgba(255, 255, 255, 0.8)', // Lighter white/gray for contrast
               zIndex: 20,
             },
             feelsLikeStyle
@@ -323,14 +331,40 @@ export default function HeroWeatherCard({ scrollY }: HeroWeatherCardProps) {
 
       {/* Tab Navigation */}
       <View className="flex-row gap-3 px-6 py-4">
-        <Pressable className="flex-1 bg-weather-tab-active items-center justify-center py-3 rounded-2xl">
-          <Text className="text-weather-accent font-medium" style={{ fontFamily: 'ProductSans-Regular' }}>Today</Text>
+        <Pressable
+          onPress={() => onTabChange('today')}
+          className={`flex-1 items-center justify-center py-3 rounded-2xl ${activeTab === 'today' ? 'bg-weather-tab-active' : 'bg-white'}`}
+        >
+          <Text
+            className={`font-medium ${activeTab === 'today' ? 'text-weather-accent' : 'text-slate-600'}`}
+            style={{ fontFamily: 'ProductSans-Regular' }}
+          >
+            Today
+          </Text>
         </Pressable>
-        <Pressable className="flex-1 bg-white items-center justify-center py-3 rounded-2xl">
-          <Text className="text-slate-600 font-medium" style={{ fontFamily: 'ProductSans-Regular' }}>Tomorrow</Text>
+
+        <Pressable
+          onPress={() => onTabChange('tomorrow')}
+          className={`flex-1 items-center justify-center py-3 rounded-2xl ${activeTab === 'tomorrow' ? 'bg-weather-tab-active' : 'bg-white'}`}
+        >
+          <Text
+            className={`font-medium ${activeTab === 'tomorrow' ? 'text-weather-accent' : 'text-slate-600'}`}
+            style={{ fontFamily: 'ProductSans-Regular' }}
+          >
+            Tomorrow
+          </Text>
         </Pressable>
-        <Pressable className="flex-1 bg-white items-center justify-center py-3 rounded-2xl">
-          <Text className="text-slate-600 font-medium" style={{ fontFamily: 'ProductSans-Regular' }}>10 days</Text>
+
+        <Pressable
+          onPress={() => onTabChange('10days')}
+          className={`flex-1 items-center justify-center py-3 rounded-2xl ${activeTab === '10days' ? 'bg-weather-tab-active' : 'bg-white'}`}
+        >
+          <Text
+            className={`font-medium ${activeTab === '10days' ? 'text-weather-accent' : 'text-slate-600'}`}
+            style={{ fontFamily: 'ProductSans-Regular' }}
+          >
+            10 days
+          </Text>
         </Pressable>
       </View>
     </Animated.View>

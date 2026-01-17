@@ -1,34 +1,101 @@
 import { View, Text } from 'react-native';
-import { Wind, CloudRain, Gauge, Sun } from 'lucide-react-native';
+import { Wind, CloudRain, Gauge, Sun, ChevronDown } from 'lucide-react-native';
 
 export default function WeatherDetailsGrid() {
-  const details = [
-    { Icon: Wind, label: 'Wind speed', value: '12km/h', change: '2 km/h' },
-    { Icon: CloudRain, label: 'Rain chance', value: '24%', change: '10%' },
-    { Icon: Gauge, label: 'Pressure', value: '720 hpa', change: '32 hpa' },
-    { Icon: Sun, label: 'UV index', value: '2.3', change: '0.3' },
-  ];
-
   return (
     <View className="px-6 mb-4">
       <View className="flex-row flex-wrap gap-3">
-        {details.map(({ Icon, label, value, change }, index) => (
-          <View 
-            key={index} 
-            className="bg-weather-card rounded-2xl p-4 flex-1 min-w-[45%] flex-row items-center"
-          >
-            <View className="bg-white/50 p-3 rounded-full mr-3">
-              <Icon size={24} color="#4B5563" />
+        {/* Wind Speed Card */}
+        <View className="bg-[#EFE9FF] rounded-3xl p-3 flex-1 min-w-[45%]">
+          <View className="flex-row items-center gap-2.5 mb-1">
+            <View className="bg-white p-2 rounded-full items-center justify-center">
+              <Wind size={18} color="#4B5563" />
             </View>
-            <View>
-              <Text className="text-gray-700 text-sm mb-1">{label}</Text>
-              <Text className="text-gray-900 text-xl font-semibold mb-1">
-                {value}
+            <Text className="text-[#333333] text-[15px] font-medium" style={{ fontFamily: 'ProductSans-Regular' }}>
+              Wind speed
+            </Text>
+          </View>
+          <View className="flex-row items-baseline justify-between mt-2">
+            <Text className="text-[#1F2937] text-[18px] font-semibold" style={{ fontFamily: 'ProductSans-Regular' }}>
+              12km/h
+            </Text>
+            <View className="flex-row items-center">
+              <Text className="text-[#DC2626] text-[10px] mr-0.5">▼</Text>
+              <Text className="text-[#1F2937] text-[11px] font-bold" style={{ fontFamily: 'ProductSans-Regular' }}>
+                2 km/h
               </Text>
-              <Text className="text-gray-600 text-xs">{change}</Text>
             </View>
           </View>
-        ))}
+        </View>
+
+        {/* Rain Chance Card */}
+        <View className="bg-[#EFE9FF] rounded-3xl p-3 flex-1 min-w-[45%]">
+          <View className="flex-row items-center gap-2.5 mb-1">
+            <View className="bg-white p-2 rounded-full items-center justify-center">
+              <CloudRain size={18} color="#4B5563" />
+            </View>
+            <Text className="text-[#333333] text-[15px] font-medium" style={{ fontFamily: 'ProductSans-Regular' }}>
+              Rain chance
+            </Text>
+          </View>
+          <View className="flex-row items-baseline justify-between mt-2">
+            <Text className="text-[#1F2937] text-[18px] font-semibold" style={{ fontFamily: 'ProductSans-Regular' }}>
+              24%
+            </Text>
+            <View className="flex-row items-center">
+              <Text className="text-[#DC2626] text-[10px] mr-0.5">▼</Text>
+              <Text className="text-[#1F2937] text-[11px] font-bold" style={{ fontFamily: 'ProductSans-Regular' }}>
+                10%
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Pressure Card */}
+        <View className="bg-[#EFE9FF] rounded-3xl p-3 flex-1 min-w-[45%]">
+          <View className="flex-row items-center gap-2.5 mb-1">
+            <View className="bg-white p-2 rounded-full items-center justify-center">
+              <Gauge size={18} color="#4B5563" />
+            </View>
+            <Text className="text-[#333333] text-[15px] font-medium" style={{ fontFamily: 'ProductSans-Regular' }}>
+              Pressure
+            </Text>
+          </View>
+          <View className="flex-row items-baseline justify-between mt-2">
+            <Text className="text-[#1F2937] text-[18px] font-semibold" style={{ fontFamily: 'ProductSans-Regular' }}>
+              720 hpa
+            </Text>
+            <View className="flex-row items-center">
+              <Text className="text-[#DC2626] text-[10px] mr-0.5">▼</Text>
+              <Text className="text-[#1F2937] text-[11px] font-bold" style={{ fontFamily: 'ProductSans-Regular' }}>
+                32 hpa
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* UV Index Card */}
+        <View className="bg-[#EFE9FF] rounded-3xl p-3 flex-1 min-w-[45%]">
+          <View className="flex-row items-center gap-2.5 mb-1">
+            <View className="bg-white p-2 rounded-full items-center justify-center">
+              <Sun size={18} color="#4B5563" />
+            </View>
+            <Text className="text-[#333333] text-[15px] font-medium" style={{ fontFamily: 'ProductSans-Regular' }}>
+              UV Index
+            </Text>
+          </View>
+          <View className="flex-row items-baseline justify-between mt-2">
+            <Text className="text-[#1F2937] text-[18px] font-semibold" style={{ fontFamily: 'ProductSans-Regular' }}>
+              2,3
+            </Text>
+            <View className="flex-row items-center">
+              <Text className="text-[#DC2626] text-[10px] mr-0.5">▼</Text>
+              <Text className="text-[#1F2937] text-[11px] font-bold" style={{ fontFamily: 'ProductSans-Regular' }}>
+                0.3
+              </Text>
+            </View>
+          </View>
+        </View>
       </View>
     </View>
   );

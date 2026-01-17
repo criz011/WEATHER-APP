@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { RefreshControl } from 'react-native';
+import { useState } from 'react';
 import { useFonts } from 'expo-font';
 import Animated, { useSharedValue, useAnimatedScrollHandler } from 'react-native-reanimated';
 
@@ -16,6 +17,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import './global.css';
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | '10days'>('today');
   const scrollY = useSharedValue(0);
 
   const onScroll = useAnimatedScrollHandler((event) => {
@@ -47,25 +49,36 @@ export default function App() {
           }
         >
           {/* Sticky Hero Weather Card (includes Header + Hero + Tabs) */}
-          <HeroWeatherCard scrollY={scrollY} />
+          <HeroWeatherCard
+            scrollY={scrollY}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
 
-          {/* Weather Details Grid */}
-          <WeatherDetailsGrid />
+          {activeTab === 'today' ? (
+            <>
+              {/* Weather Details Grid */}
+              <WeatherDetailsGrid />
 
-          {/* Hourly Forecast */}
-          <HourlyForecast />
+              {/* Hourly Forecast */}
+              <HourlyForecast />
 
-          {/* Day Forecast Chart */}
-          <DayForecastChart />
+              {/* Day Forecast Chart */}
+              <DayForecastChart />
 
-          {/* Rain Chance Chart */}
-          <RainChanceChart />
+              {/* Rain Chance Chart */}
+              <RainChanceChart />
 
-          {/* Sunrise/Sunset */}
-          <SunriseSunset />
-
-          {/* Daily Forecast List */}
-          <DailyForecastList />
+              {/* Sunrise/Sunset */}
+              <SunriseSunset />
+            </>
+          ) : activeTab === '10days' ? (
+            /* Daily Forecast List for 10 Days */
+            <DailyForecastList />
+          ) : (
+            /* Placeholder for Tomorrow */
+            <WeatherDetailsGrid />
+          )}
         </Animated.ScrollView>
         <StatusBar style="light" />
       </SafeAreaView>
