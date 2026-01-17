@@ -55,7 +55,7 @@ export default function App() {
             onTabChange={setActiveTab}
           />
 
-          {activeTab === 'today' ? (
+          {activeTab === 'today' || activeTab === 'tomorrow' ? (
             <>
               {/* Weather Details Grid */}
               <WeatherDetailsGrid />
@@ -72,12 +72,9 @@ export default function App() {
               {/* Sunrise/Sunset */}
               <SunriseSunset />
             </>
-          ) : activeTab === '10days' ? (
+          ) : (
             /* Daily Forecast List for 10 Days */
             <DailyForecastList />
-          ) : (
-            /* Placeholder for Tomorrow */
-            <WeatherDetailsGrid />
           )}
         </Animated.ScrollView>
         <StatusBar style="light" />

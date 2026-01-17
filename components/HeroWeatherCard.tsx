@@ -1,5 +1,5 @@
 import { View, Text, Pressable, ImageBackground, Dimensions } from 'react-native';
-import { Search } from 'lucide-react-native';
+// Search import removed
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -211,6 +211,15 @@ export default function HeroWeatherCard({ scrollY, activeTab, onTabChange }: Her
     return { opacity };
   });
 
+  const searchIconStyle = useAnimatedStyle(() => {
+    const tintColor = interpolateColor(
+      scrollY.value,
+      [0, SCROLL_THRESHOLD],
+      ['rgba(255, 255, 255, 1)', 'rgba(0, 0, 0, 1)']
+    );
+    return { tintColor };
+  });
+
   return (
     <Animated.View style={wrapperStyle}>
       {/* Background Image Container */}
@@ -250,8 +259,12 @@ export default function HeroWeatherCard({ scrollY, activeTab, onTabChange }: Her
             </Animated.Text>
           </View>
 
-          <View className="w-10 h-10 bg-white/20 rounded-full items-center justify-center">
-            <Search color="white" size={24} />
+          <View className="w-10 h-10 rounded-full items-center justify-center">
+            <Animated.Image
+              source={require('../assets/search-icon.png')}
+              style={[{ width: 18, height: 18 }, searchIconStyle]}
+              resizeMode="contain"
+            />
           </View>
         </View>
 
