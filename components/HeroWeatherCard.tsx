@@ -24,6 +24,7 @@ interface HeroWeatherCardProps {
   feelsLike?: number;
   icon?: any;
   date?: string | null;
+  onSearchPress?: () => void;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -41,7 +42,8 @@ export default function HeroWeatherCard({
   location = 'Thrissur, India',
   feelsLike = 35,
   icon: WeatherIcon = Sun, // Default to Sun if missing
-  date = null
+  date = null,
+  onSearchPress
 }: HeroWeatherCardProps) {
   const insets = useSafeAreaInsets();
   const [now, setNow] = useState(new Date());
@@ -287,13 +289,16 @@ export default function HeroWeatherCard({
             </Animated.Text>
           </View>
 
-          <View className="w-10 h-10 rounded-full items-center justify-center">
+          <Pressable
+            onPress={onSearchPress}
+            className="w-10 h-10 rounded-full items-center justify-center active:bg-white/20"
+          >
             <Animated.Image
               source={require('../assets/search-icon.png')}
               style={[{ width: 18, height: 18 }, searchIconStyle]}
               resizeMode="contain"
             />
-          </View>
+          </Pressable>
         </View>
 
         {/* Floating Animated Elements (Absolute Positioned) */}

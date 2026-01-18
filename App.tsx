@@ -13,7 +13,9 @@ import WeatherDetailsGrid from './components/WeatherDetailsGrid';
 import DayForecastChart from './components/DayForecastChart';
 import RainChanceChart from './components/RainChanceChart';
 import SunriseSunset from './components/SunriseSunset';
+import AirQuality from './components/AirQuality';
 import DailyForecastList from './components/DailyForecastList';
+import LocationSelector, { LOCATIONS } from './components/LocationSelector';
 
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import './global.css';
@@ -21,20 +23,28 @@ import './global.css';
 export default function App() {
   const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | '10days'>('today');
   const [weather, setWeather] = useState<WeatherData | null>(null);
+  // Location State
+  const [location, setLocation] = useState(LOCATIONS[0]); // Default Thrissur
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const scrollY = useSharedValue(0);
 
   useEffect(() => {
     loadWeather();
-  }, []);
+  }, [location]); // Re-fetch when location changes
 
   const loadWeather = async () => {
     setLoading(true);
-    const data = await fetchWeatherData();
+    const data = await fetchWeatherData(location.lat, location.lon);
     if (data) {
       setWeather(data);
     }
     setLoading(false);
+  };
+
+  const handleLocationSelect = (newLocation: typeof LOCATIONS[0]) => {
+    setLocation(newLocation);
+    setIsSearchOpen(false);
   };
 
   const onScroll = useAnimatedScrollHandler((event) => {
@@ -89,9 +99,10 @@ export default function App() {
                 high={heroData?.high}
                 low={heroData?.low}
                 feelsLike={isTomorrow ? undefined : weather?.current.feelsLike}
-                location="Thrissur, India"
+                location={location.name}
                 icon={heroData?.icon}
                 date={isTomorrow ? tomorrowDate : undefined}
+                onSearchPress={() => setIsSearchOpen(true)}
               />
             );
           })()}
@@ -138,6 +149,15 @@ export default function App() {
                     sunriseDiff={astroData?.sunriseDiff}
                     sunsetDiff={astroData?.sunsetDiff}
                   />
+
+                  {/* Air Quality (Only show for Today) */}
+                  {!isTomorrow && (
+                    <AirQuality
+                      aqi={weather?.aqi.current}
+                      label={weather?.aqi.label}
+                      color={weather?.aqi.color}
+                    />
+                  )}
                 </>
               );
             })()
@@ -146,6 +166,14 @@ export default function App() {
             <DailyForecastList daily={weather?.daily} />
           )}
         </Animated.ScrollView>
+        {/* Location Selector Overlay */}
+        {isSearchOpen && (
+          <LocationSelector
+            onSelect={handleLocationSelect}
+            onClose={() => setIsSearchOpen(false)}
+          />
+        )}
+
         <StatusBar style="light" />
       </SafeAreaView>
     </SafeAreaProvider>

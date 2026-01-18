@@ -59,7 +59,14 @@ export interface WeatherData {
         sunriseDiff: string;
         sunsetDiff: string;
     };
+    aqi: {
+        current: number;
+        label: string;
+        color: string;
+    };
 }
+
+// ... (HourlyForecastItem, DailyForecastItem remain same) ...
 
 export interface HourlyForecastItem {
     time: string; // "10 AM"
@@ -127,6 +134,15 @@ export const getWeatherCodeData = (code: number, isDay: number = 1) => {
     return { condition: 'Unknown', icon: Cloudy };
 };
 
+const getAQILabel = (aqi: number) => {
+    if (aqi <= 50) return { label: 'Good', color: '#10B981' }; // Green
+    if (aqi <= 100) return { label: 'Moderate', color: '#F59E0B' }; // Yellow
+    if (aqi <= 150) return { label: 'Unhealthy for Sensitive Groups', color: '#F97316' }; // Orange
+    if (aqi <= 200) return { label: 'Unhealthy', color: '#EF4444' }; // Red
+    if (aqi <= 300) return { label: 'Very Unhealthy', color: '#8B5CF6' }; // Purple
+    return { label: 'Hazardous', color: '#7F1D1D' }; // Maroon
+};
+
 const formatTimeDiff = (targetTimeStr: string): string => {
     const now = new Date();
     const target = new Date(targetTimeStr);
@@ -139,7 +155,6 @@ const formatTimeDiff = (targetTimeStr: string): string => {
     const h = Math.floor(absMins / 60);
     const m = absMins % 60;
 
-    // "in 4h 10m" or "4h 10m ago"
     // Simplify: if > 60m, show hours. Else show mins.
     let timeString = '';
     if (h > 0) {
@@ -152,12 +167,22 @@ const formatTimeDiff = (targetTimeStr: string): string => {
     return `${timeString} ago`;
 };
 
-export const fetchWeatherData = async (): Promise<WeatherData | null> => {
+export const fetchWeatherData = async (lat: number, lon: number): Promise<WeatherData | null> => {
     try {
-        const response = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,apparent_temperature,is_day,precipitation,rain,weather_code,wind_speed_10m,pressure_msl&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,is_day,uv_index,pressure_msl,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,wind_speed_10m_max,precipitation_sum&timezone=auto&forecast_days=14`
-        );
-        const data = await response.json();
+        const [weatherResponse, aqiResponse] = await Promise.all([
+            fetch(
+                `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,is_day,precipitation,rain,weather_code,wind_speed_10m,pressure_msl&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,is_day,uv_index,pressure_msl,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,wind_speed_10m_max,precipitation_sum&timezone=auto&forecast_days=14`
+            ),
+            fetch(
+                `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi`
+            )
+        ]);
+        const data = await weatherResponse.json();
+        const aqiData = await aqiResponse.json();
+
+        // AQI Data
+        const currentAQI = aqiData.current?.us_aqi || 0;
+        const aqiInfo = getAQILabel(currentAQI);
 
         const current = data.current;
         const daily = data.daily;
@@ -272,7 +297,7 @@ export const fetchWeatherData = async (): Promise<WeatherData | null> => {
                 hourly: tomorrowHourly,
                 // Using Daily Max/Sums for tomorrow's grid as "single value" representation
                 windSpeed: Math.round(daily.wind_speed_10m_max[1]),
-                rainChance: 0, // Daily rain probability not available in simple daily API, using 0 placeholder or need to calculate from hourly? defaulting to 0 for now. Actually, let's use precipitation sum as a proxy or just leave it. OpenMeteo has precipitation_probability_max in daily.
+                rainChance: 0, // Daily rain probability not available in simple daily API, using 0 placeholder or need to calculate from hourly? defaulting to 0 for now. Actually, let's use precipitation_probability_max in daily.
                 pressure: 1013, // Placeholder, pressure forecast not standard in daily simple.
                 uvIndex: Math.round(daily.uv_index_max[1]),
                 astro: {
@@ -289,6 +314,11 @@ export const fetchWeatherData = async (): Promise<WeatherData | null> => {
                 sunset: new Date(daily.sunset[0]).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
                 sunriseDiff: formatTimeDiff(daily.sunrise[0]),
                 sunsetDiff: formatTimeDiff(daily.sunset[0]),
+            },
+            aqi: {
+                current: Math.round(currentAQI),
+                label: aqiInfo.label,
+                color: aqiInfo.color
             }
         };
 

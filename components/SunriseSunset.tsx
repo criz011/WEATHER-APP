@@ -15,7 +15,7 @@ export default function SunriseSunset({
   sunsetDiff = 'in 9h',
 }: SunriseSunsetProps) {
   return (
-    <View className="px-6 mb-8">
+    <View className="px-6 mb-2">
       <View className="flex-row gap-4">
 
         {/* Sunrise */}
