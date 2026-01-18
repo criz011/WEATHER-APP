@@ -2,8 +2,6 @@
 
 A stunning, highly interactive weather application built with **React Native** and **Expo**. Designed with a focus on fluid animations, detailed visualizations, and a modern "Glassmorphism" aesthetic.
 
-![App Banner](https://via.placeholder.com/800x400?text=App+Screenshot+Here)
-
 ## ✨ Features
 
 - **📍 Location Search**: Seamlessly switch between cities (Thrissur, Kochi, Delhi) with a custom frosted-glass search overlay.
