@@ -1,4 +1,4 @@
-import { View, Text as RNText } from 'react-native';
+import { View, Text } from 'react-native';
 import { Sunrise, Sunset } from 'lucide-react-native';
 
 interface SunriseSunsetProps {
@@ -24,28 +24,28 @@ export default function SunriseSunset({
             <View className="bg-white p-2 rounded-full">
               <Sunrise size={18} color="#4B5563" />
             </View>
-            <RNText
+            <Text
               className="text-[14px] text-gray-700 font-medium"
               style={{ fontFamily: 'ProductSans-Regular' }}
             >
               Sunrise
-            </RNText>
+            </Text>
           </View>
 
           <View className="flex-row items-end justify-between">
-            <RNText
+            <Text
               className="text-[17px] text-[#333333] font-semibold"
               style={{ fontFamily: 'ProductSans-Regular' }}
             >
               {sunrise}
-            </RNText>
+            </Text>
 
-            <RNText
+            <Text
               className="text-[11px] text-gray-500 font-medium mb-0.5"
               style={{ fontFamily: 'ProductSans-Regular' }}
             >
               {sunriseDiff}
-            </RNText>
+            </Text>
           </View>
         </View>
 
@@ -55,28 +55,28 @@ export default function SunriseSunset({
             <View className="bg-white p-2 rounded-full">
               <Sunset size={18} color="#4B5563" />
             </View>
-            <RNText
+            <Text
               className="text-[14px] text-gray-700 font-medium"
               style={{ fontFamily: 'ProductSans-Regular' }}
             >
               Sunset
-            </RNText>
+            </Text>
           </View>
 
           <View className="flex-row items-end justify-between">
-            <RNText
+            <Text
               className="text-[17px] text-[#333333] font-semibold"
               style={{ fontFamily: 'ProductSans-Regular' }}
             >
               {sunset}
-            </RNText>
+            </Text>
 
-            <RNText
+            <Text
               className="text-[11px] text-gray-500 font-medium mb-0.5"
               style={{ fontFamily: 'ProductSans-Regular' }}
             >
               {sunsetDiff}
-            </RNText>
+            </Text>
           </View>
         </View>
 

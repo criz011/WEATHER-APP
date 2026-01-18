@@ -1,8 +1,6 @@
 import React from 'react';
-import { View, Text, Pressable, Dimensions } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { MapPin } from 'lucide-react-native';
-
-const { width } = Dimensions.get('window');
 
 interface Location {
     name: string;

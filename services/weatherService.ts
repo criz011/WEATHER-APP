@@ -9,7 +9,6 @@ import Showers from '../assets/weather-icons/showers.svg';
 import HeavySnow from '../assets/weather-icons/heavy_snow.svg';
 import SnowShowers from '../assets/weather-icons/snow_showers.svg';
 import Thunderstorm from '../assets/weather-icons/strong_tstorms.svg';
-import Windy from '../assets/weather-icons/wind.svg';
 
 // Thrissur Coordinates
 const LAT = 10.5276;
@@ -190,52 +189,38 @@ export const fetchWeatherData = async (lat: number, lon: number): Promise<Weathe
 
         const weatherCodeData = getWeatherCodeData(current.weather_code, current.is_day);
 
+        // Helper to map a slice of hourly data
+        const mapHourlySegment = (startIndex: number, count: number, markNow: boolean): HourlyForecastItem[] => {
+            const segment: HourlyForecastItem[] = [];
+            for (let i = startIndex; i < startIndex + count; i++) {
+                if (!hourly.time[i]) break;
+
+                const hCode = hourly.weather_code[i];
+                const hIsDay = hourly.is_day[i];
+                const hData = getWeatherCodeData(hCode, hIsDay);
+                const d = new Date(hourly.time[i]);
+                const hours = d.getHours();
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                const formattedTime = `${hours % 12 || 12} ${ampm}`;
+
+                segment.push({
+                    time: (markNow && i === startIndex) ? 'Now' : formattedTime,
+                    temp: Math.round(hourly.temperature_2m[i]),
+                    icon: hData.icon,
+                    isNow: markNow && i === startIndex,
+                    rainChance: hourly.precipitation_probability[i] || 0
+                });
+            }
+            return segment;
+        };
+
         // Map Hourly Data (Next 24 hours STARTING NOW)
         const currentHourIndex = new Date().getHours();
-        const mappedHourly: HourlyForecastItem[] = [];
-
-        for (let i = currentHourIndex; i < currentHourIndex + 24; i++) {
-            if (!hourly.time[i]) break;
-            const hCode = hourly.weather_code[i];
-            const hIsDay = hourly.is_day[i];
-            const hData = getWeatherCodeData(hCode, hIsDay);
-            const d = new Date(hourly.time[i]);
-            const hours = d.getHours();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            const formattedTime = `${hours % 12 || 12} ${ampm}`;
-
-            mappedHourly.push({
-                time: i === currentHourIndex ? 'Now' : formattedTime,
-                temp: Math.round(hourly.temperature_2m[i]),
-                icon: hData.icon,
-                isNow: i === currentHourIndex,
-                rainChance: hourly.precipitation_probability[i] || 0
-            });
-        }
+        const mappedHourly = mapHourlySegment(currentHourIndex, 24, true);
 
         // Map Hourly Data (Tomorrow 00:00 to 23:00)
-        // Find index of tomorrow 00:00
-        // Currently hourly data starts at day 0 (today) 00:00 usually.
-        // So index 24 is tomorrow 00:00.
-        const tomorrowHourly: HourlyForecastItem[] = [];
-        for (let i = 24; i < 48; i++) {
-            if (!hourly.time[i]) break;
-            const hCode = hourly.weather_code[i];
-            const hIsDay = hourly.is_day[i];
-            const hData = getWeatherCodeData(hCode, hIsDay);
-            const d = new Date(hourly.time[i]);
-            const hours = d.getHours();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            const formattedTime = `${hours % 12 || 12} ${ampm}`;
-
-            tomorrowHourly.push({
-                time: formattedTime,
-                temp: Math.round(hourly.temperature_2m[i]),
-                icon: hData.icon,
-                isNow: false,
-                rainChance: hourly.precipitation_probability[i] || 0
-            });
-        }
+        // Index 24 is tomorrow 00:00 relative to forecast start
+        const tomorrowHourly = mapHourlySegment(24, 24, false);
 
         // Map Daily Data
         const mappedDaily: DailyForecastItem[] = daily.time.map((time: string, index: number) => {
