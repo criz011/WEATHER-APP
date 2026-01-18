@@ -70,18 +70,31 @@ export default function App() {
           }
         >
           {/* Sticky Hero Weather Card (includes Header + Hero + Tabs) */}
-          <HeroWeatherCard
-            scrollY={scrollY}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            temp={weather?.current.temp}
-            condition={weather?.current.condition}
-            high={weather?.current.high}
-            low={weather?.current.low}
-            feelsLike={weather?.current.feelsLike}
-            location="Thrissur, India"
-            icon={weather?.current.icon}
-          />
+          {(() => {
+            const isTomorrow = activeTab === 'tomorrow';
+            const heroData = isTomorrow ? weather?.tomorrow : weather?.current;
+            // For tomorrow, use 'High' as the main display temp
+            const displayTemp = isTomorrow ? heroData?.high : weather?.current.temp;
+
+            // Format Tomorrow's Date
+            const tomorrowDate = weather?.daily?.[1] ? `${weather.daily[1].day}, ${weather.daily[1].date}` : undefined;
+
+            return (
+              <HeroWeatherCard
+                scrollY={scrollY}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                temp={displayTemp}
+                condition={heroData?.condition}
+                high={heroData?.high}
+                low={heroData?.low}
+                feelsLike={isTomorrow ? undefined : weather?.current.feelsLike}
+                location="Thrissur, India"
+                icon={heroData?.icon}
+                date={isTomorrow ? tomorrowDate : undefined}
+              />
+            );
+          })()}
 
           {activeTab === 'today' || activeTab === 'tomorrow' ? (
             (() => {

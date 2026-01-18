@@ -23,6 +23,7 @@ interface HeroWeatherCardProps {
   location?: string;
   feelsLike?: number;
   icon?: any;
+  date?: string | null;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -39,7 +40,8 @@ export default function HeroWeatherCard({
   low = 24,
   location = 'Thrissur, India',
   feelsLike = 35,
-  icon: WeatherIcon = Sun // Default to Sun if missing
+  icon: WeatherIcon = Sun, // Default to Sun if missing
+  date = null
 }: HeroWeatherCardProps) {
   const insets = useSafeAreaInsets();
   const [now, setNow] = useState(new Date());
@@ -362,7 +364,7 @@ export default function HeroWeatherCard({
           {/* Bottom Row */}
           <View className="flex-row justify-between items-end">
             <Text className="text-white text-lg font-medium" style={{ fontFamily: 'ProductSans-Regular' }}>
-              {now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}, {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+              {date ? date : `${now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}, ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}`}
             </Text>
 
             <View className="items-end">
