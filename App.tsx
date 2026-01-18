@@ -16,6 +16,7 @@ import SunriseSunset from './components/SunriseSunset';
 import AirQuality from './components/AirQuality';
 import DailyForecastList from './components/DailyForecastList';
 import LocationSelector, { LOCATIONS } from './components/LocationSelector';
+import LoadingScreen from './components/LoadingScreen';
 
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import './global.css';
@@ -58,9 +59,7 @@ export default function App() {
 
   if (!fontsLoaded || loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-purple-400">
-        <ActivityIndicator size="large" color="white" />
-      </View>
+      <LoadingScreen message={`Updating ${location.name.split(',')[0]}...`} />
     );
   }
 
