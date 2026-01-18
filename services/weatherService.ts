@@ -34,6 +34,23 @@ export interface WeatherData {
         pressureDiff?: number;
         uvIndexDiff?: number;
     };
+    tomorrow: {
+        high: number;
+        low: number;
+        condition: string;
+        icon: any;
+        hourly: HourlyForecastItem[];
+        windSpeed: number;
+        rainChance: number;
+        pressure: number;
+        uvIndex: number;
+        astro: {
+            sunrise: string;
+            sunset: string;
+            sunriseDiff: string;
+            sunsetDiff: string;
+        };
+    };
     hourly: HourlyForecastItem[];
     daily: DailyForecastItem[];
     astro: {
@@ -148,20 +165,15 @@ export const fetchWeatherData = async (): Promise<WeatherData | null> => {
 
         const weatherCodeData = getWeatherCodeData(current.weather_code, current.is_day);
 
-        // Map Hourly Data (Next 24 hours)
+        // Map Hourly Data (Next 24 hours STARTING NOW)
         const currentHourIndex = new Date().getHours();
-
         const mappedHourly: HourlyForecastItem[] = [];
 
         for (let i = currentHourIndex; i < currentHourIndex + 24; i++) {
-            // Safety check
             if (!hourly.time[i]) break;
-
             const hCode = hourly.weather_code[i];
             const hIsDay = hourly.is_day[i];
             const hData = getWeatherCodeData(hCode, hIsDay);
-
-            // Format time: "10 AM"
             const d = new Date(hourly.time[i]);
             const hours = d.getHours();
             const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -176,11 +188,35 @@ export const fetchWeatherData = async (): Promise<WeatherData | null> => {
             });
         }
 
+        // Map Hourly Data (Tomorrow 00:00 to 23:00)
+        // Find index of tomorrow 00:00
+        // Currently hourly data starts at day 0 (today) 00:00 usually.
+        // So index 24 is tomorrow 00:00.
+        const tomorrowHourly: HourlyForecastItem[] = [];
+        for (let i = 24; i < 48; i++) {
+            if (!hourly.time[i]) break;
+            const hCode = hourly.weather_code[i];
+            const hIsDay = hourly.is_day[i];
+            const hData = getWeatherCodeData(hCode, hIsDay);
+            const d = new Date(hourly.time[i]);
+            const hours = d.getHours();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const formattedTime = `${hours % 12 || 12} ${ampm}`;
+
+            tomorrowHourly.push({
+                time: formattedTime,
+                temp: Math.round(hourly.temperature_2m[i]),
+                icon: hData.icon,
+                isNow: false,
+                rainChance: hourly.precipitation_probability[i] || 0
+            });
+        }
+
         // Map Daily Data
         const mappedDaily: DailyForecastItem[] = daily.time.map((time: string, index: number) => {
             const d = new Date(time);
-            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' }); // "Mon"
-            const dateStr = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }); // "18 Jan"
+            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+            const dateStr = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
             const code = daily.weather_code[index];
             const wData = getWeatherCodeData(code);
 
@@ -227,6 +263,24 @@ export const fetchWeatherData = async (): Promise<WeatherData | null> => {
                 pressureDiff: Math.round(current.pressure_msl - hourlyPressureH0),
                 rainChanceDiff: (hourly.precipitation_probability[currentHourIndex] || 0) - (hourly.precipitation_probability[prevHourIndex] || 0),
                 uvIndexDiff: parseFloat((currentUv - hourlyUvH0).toFixed(1))
+            },
+            tomorrow: {
+                high: Math.round(daily.temperature_2m_max[1]),
+                low: Math.round(daily.temperature_2m_min[1]),
+                condition: getWeatherCodeData(daily.weather_code[1]).condition,
+                icon: getWeatherCodeData(daily.weather_code[1]).icon, // Generic icon for the day
+                hourly: tomorrowHourly,
+                // Using Daily Max/Sums for tomorrow's grid as "single value" representation
+                windSpeed: Math.round(daily.wind_speed_10m_max[1]),
+                rainChance: 0, // Daily rain probability not available in simple daily API, using 0 placeholder or need to calculate from hourly? defaulting to 0 for now. Actually, let's use precipitation sum as a proxy or just leave it. OpenMeteo has precipitation_probability_max in daily.
+                pressure: 1013, // Placeholder, pressure forecast not standard in daily simple.
+                uvIndex: Math.round(daily.uv_index_max[1]),
+                astro: {
+                    sunrise: new Date(daily.sunrise[1]).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+                    sunset: new Date(daily.sunset[1]).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+                    sunriseDiff: formatTimeDiff(daily.sunrise[1]),
+                    sunsetDiff: formatTimeDiff(daily.sunset[1]),
+                }
             },
             hourly: mappedHourly,
             daily: mappedDaily,

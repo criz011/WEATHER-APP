@@ -84,39 +84,50 @@ export default function App() {
           />
 
           {activeTab === 'today' || activeTab === 'tomorrow' ? (
-            <>
-              {/* Weather Details Grid */}
-              <WeatherDetailsGrid
-                windSpeed={weather?.current.windSpeed}
-                rainChance={weather?.current.rainChance}
-                pressure={weather?.current.pressure}
-                uvIndex={weather?.current.uvIndex}
-                windSpeedDiff={weather?.current.windSpeedDiff}
-                rainChanceDiff={weather?.current.rainChanceDiff}
-                pressureDiff={weather?.current.pressureDiff}
-                uvIndexDiff={weather?.current.uvIndexDiff}
-              />
+            (() => {
+              // Helper to swap data based on tab
+              const isTomorrow = activeTab === 'tomorrow';
+              const currentData = isTomorrow ? weather?.tomorrow : weather?.current;
+              const hourlyData = isTomorrow ? weather?.tomorrow.hourly : weather?.hourly;
+              const astroData = isTomorrow ? weather?.tomorrow.astro : weather?.astro;
 
-              {/* Hourly Forecast */}
-              <HourlyForecast hourly={weather?.hourly} />
+              return (
+                <>
+                  {/* Weather Details Grid */}
+                  <WeatherDetailsGrid
+                    windSpeed={currentData?.windSpeed}
+                    rainChance={currentData?.rainChance}
+                    pressure={currentData?.pressure}
+                    uvIndex={currentData?.uvIndex}
+                    // Hide diffs for tomorrow as they don't make sense relative to "yesterday" in this context
+                    windSpeedDiff={isTomorrow ? undefined : weather?.current.windSpeedDiff}
+                    rainChanceDiff={isTomorrow ? undefined : weather?.current.rainChanceDiff}
+                    pressureDiff={isTomorrow ? undefined : weather?.current.pressureDiff}
+                    uvIndexDiff={isTomorrow ? undefined : weather?.current.uvIndexDiff}
+                  />
 
-              {/* Day Forecast Chart */}
-              <DayForecastChart
-                daily={weather?.daily}
-                currentTemp={weather?.current.temp}
-              />
+                  {/* Hourly Forecast */}
+                  <HourlyForecast hourly={hourlyData} />
 
-              {/* Rain Chance Chart */}
-              <RainChanceChart hourly={weather?.hourly} />
+                  {/* Day Forecast Chart (Always 10 Days) */}
+                  <DayForecastChart
+                    daily={weather?.daily}
+                    currentTemp={weather?.current.temp}
+                  />
 
-              {/* Sunrise/Sunset */}
-              <SunriseSunset
-                sunrise={weather?.astro.sunrise}
-                sunset={weather?.astro.sunset}
-                sunriseDiff={weather?.astro.sunriseDiff}
-                sunsetDiff={weather?.astro.sunsetDiff}
-              />
-            </>
+                  {/* Rain Chance Chart */}
+                  <RainChanceChart hourly={hourlyData} />
+
+                  {/* Sunrise/Sunset */}
+                  <SunriseSunset
+                    sunrise={astroData?.sunrise}
+                    sunset={astroData?.sunset}
+                    sunriseDiff={astroData?.sunriseDiff}
+                    sunsetDiff={astroData?.sunsetDiff}
+                  />
+                </>
+              );
+            })()
           ) : (
             /* Daily Forecast List for 10 Days */
             <DailyForecastList daily={weather?.daily} />
